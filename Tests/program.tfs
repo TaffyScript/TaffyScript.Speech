@@ -1,0 +1,159 @@
+using TaffyScript.Speech;
+using System.Speech.Recognition;
+
+namespace TaffyScript.Speech.Tests {
+    // The entry point for the program
+    script main() {
+        // You can use recognize_test or synth_test
+        // depending on what you want to see.
+        synth_test();
+        recognize_test();
+    }
+
+    // Tests the TaffyScript.Speech.SpeechRecognizer class
+    script recognize_test() {
+
+        // Finds all of the recognizers installed on the system
+        // It returns an array of RecognizerInfo objects
+        var recognizers = speech_get_installed_recognizers();
+        var count = array_length_1d(recognizers);
+        var info = null;
+
+        // This searches for an english voice recognizer
+        for(var i = 0; i < count; i++) {
+            if(string_pos(recognizers[i].culture, "en") != -1) {
+                info = recognizers[i];
+                break;
+            }
+        }
+
+        // If no english recognizer was found, exit from the program
+        if(info == null) {
+            print("No speech recognizer installed for the english language");
+            return;
+        }
+
+        // Create a SpeechRecognizer from the english RecognizerInfo id
+        var recognizer = new SpeechRecognizer(info.id);
+
+        // Create a new grammar to define what speech to find
+        var grammar = new Grammar();
+        grammar.append_phrase("hello");
+
+        // Load the grammar into thr recognizer
+        recognizer.load_grammar("hello", grammar);
+
+        // Subscribe a method(s) to any of the desired events
+        recognizer.subscribe_event(RecognizerEventType.RecognizeCompleted, recognize_completed);
+        recognizer.subscribe_event(RecognizerEventType.SpeechDetected, script { print("Event: Speech Detected") });
+        recognizer.subscribe_event(RecognizerEventType.SpeechHypothesized, script { print("Event: Speech Hypothesized"); print_recognition_result(argument0.result); });
+        recognizer.subscribe_event(RecognizerEventType.SpeechRecognitionRejected, script { print("Event: Speech Recognition Rejected"); print_recognition_result(argument0.result); });
+        recognizer.subscribe_event(RecognizerEventType.SpeechRecognized, script { print("Event: Speech Recognized"); print_recognition_result(argument0.result); });
+
+        print("Recognize Started");
+
+        // Synchronously recognize using the default audio input device
+        recognizer.recognize(5000);
+
+        print("Recognize Ended");
+
+        // Clean up the recognizer
+        recognizer.dispose();
+    }
+
+    // Callback for the RecognizerEventType.RecognizeCompleted event
+    script recognize_completed(result) {
+        if(result.cancelled)
+            print("Recognition cancelled");
+        else if(result.babble_timeout)
+            print("Recognition timed out from incoherent speech");
+        else if(result.initial_silence_timeout)
+            print("Recognition timed out from initial silence");
+        else if(result.input_stream_ended)
+            print("Recognition input ended");
+        else if(result.error != "")
+            print(result.error);
+        else {
+            print("Event: Recognize Completed");
+            print_recognition_result(result.result);
+        }
+    }
+
+    // Tests the TaffyScript.Speech.SpeechSynthesizer class
+    script synth_test() {
+        // create the synthesizer
+        var synth = new SpeechSynthesizer();
+
+        // Find all of the voices installed on the system
+        // Returns an array of VoiceInfo objects
+        var voices = synth.get_all_voices();
+        var count = array_length_1d(voices);
+        var voice = null;
+
+        // Search for an english voice
+        for(var i = 0; i < count; i++) {
+            if(string_pos(voices[i].culture, "en") != -1) {
+                voice = voices[i];
+                break;
+            }
+        }
+
+        // If there were no english voices, exit the program
+        if(voice == null) {
+            print("No english vioces installed...");
+            return;
+        }
+
+        // Subscribe to any desired events
+        synth.subscribe_event(TtsEventType.SpeakStarted, script { print("Speak Started"); });
+        synth.subscribe_event(TtsEventType.SpeakCompleted, script { print("Speak Completed"); });
+        synth.subscribe_event(TtsEventType.VoiceChanged, script(new_voice) { print("Voice Changed"); print_voice_info(new_voice); });
+
+        // Set the voice for the synthesizer to use
+        synth.set_voice(voice.name);
+
+        // Synchronously speak
+        synth.speak("Hello world");
+
+        //Clean up the synthesizer
+        synth.dispose();
+    }
+
+    script print_voice_info(voice) {
+        print("Voice:");
+        print("    Name: " + voice.name);
+        print("    Id: " + voice.id);
+        print("    Description: " + voice.description);
+        print("    Gender: " + string(voice.gender));
+        print("    Age: " + string(voice.age));
+        print("    Culture: " + voice.culture);
+    }
+
+    script print_recognizer_info(info) {
+        print("Recognizer:");
+        print("    Name: " + info.name);
+        print("    ID: " + info.id);
+        print("    Culture: " + info.culture);
+        print("    Description: " + info.description);
+    }
+
+    script print_recognition_result(result) {
+        print("Recognition Result:")
+        print("    Text: " + result.text);
+        print("    Grammar: " + result.grammar);
+        print("    Confidence: "+ string(result.confidence));
+        var count = array_length_1d(result.alternates);
+        if(count > 0) {
+            print("    Alternates:");
+            for(var i = 0; i < count; i++)
+                print_recognition_alternate(result.alternates[i]);
+        }
+    }
+
+    script print_recognition_alternate(alt) {
+        print("        Recognized Phrase:");
+        print("            Text: " + alt.text);
+        print("            Grammar: " + alt.grammar);
+        print("            Confidence: " + string(alt.confidence))
+    }
+}
