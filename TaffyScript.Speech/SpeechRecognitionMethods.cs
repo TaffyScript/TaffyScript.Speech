@@ -7,11 +7,11 @@ using System.Speech.Recognition;
 
 namespace TaffyScript.Speech
 {
-    [WeakBaseType]
+    [TaffyScriptBaseType]
     public static class SpeechRecognitionMethods
     {
-        [WeakMethod]
-        public static TsObject speech_get_installed_recognizers(ITsInstance inst, TsObject[] args)
+        [TaffyScriptMethod]
+        public static TsObject speech_get_installed_recognizers(TsObject[] args)
         {
             var infos = SpeechRecognitionEngine.InstalledRecognizers();
             var result = new TsObject[infos.Count];

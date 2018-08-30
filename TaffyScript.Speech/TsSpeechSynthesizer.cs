@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Speech.Synthesis;
+using TaffyScript.Collections;
 
 namespace TaffyScript.Speech
 {
-    [WeakObject]
+    [TaffyScriptObject]
     public class SpeechSynthesizer : ITsInstance
     {
         private const string PLS = "application/pls+xml";
@@ -32,31 +33,31 @@ namespace TaffyScript.Speech
             switch(scriptName)
             {
                 case "add_lexicon":
-                    return add_lexicon(null, args);
+                    return add_lexicon(args);
                 case "cancel":
-                    return cancel(null, args);
+                    return cancel(args);
                 case "dispose":
-                    return dispose(null, args);
+                    return dispose(args);
                 case "get_all_voices":
-                    return get_all_voices(null, args);
+                    return get_all_voices(args);
                 case "get_voices":
-                    return get_voices(null, args);
+                    return get_voices(args);
                 case "pause":
-                    return pause(null, args);
+                    return pause(args);
                 case "remove_lexicon":
-                    return remove_lexicon(null, args);
+                    return remove_lexicon(args);
                 case "resume":
-                    return resume(null, args);
+                    return resume(args);
                 case "set_voice":
-                    return set_voice(null, args);
+                    return set_voice(args);
                 case "speak":
-                    return speak(null, args);
+                    return speak(args);
                 case "speak_async":
-                    return speak_async(null, args);
+                    return speak_async(args);
                 case "subscribe_event":
-                    return subscribe_event(null, args);
+                    return subscribe_event(args);
                 case "unsubscribe_event":
-                    return unsubscribe_event(null, args);
+                    return unsubscribe_event(args);
                 default:
                     throw new MissingMemberException(ObjectType, scriptName);
             }
@@ -96,7 +97,7 @@ namespace TaffyScript.Speech
                     _synth.Rate = (int)value;
                     break;
                 case "voice":
-                    set_voice(this, new[] { value });
+                    set_voice(new[] { value });
                     break;
                 case "volume":
                     _synth.Volume = (int)value;
@@ -111,43 +112,43 @@ namespace TaffyScript.Speech
             switch (delegateName)
             {
                 case "add_lexicon":
-                    del = new TsDelegate(add_lexicon, "add_lexicon", this);
+                    del = new TsDelegate(add_lexicon, "add_lexicon");
                     return true;
                 case "cancel":
-                    del = new TsDelegate(cancel, "cancel", this);
+                    del = new TsDelegate(cancel, "cancel");
                     return true;
                 case "dispose":
-                    del = new TsDelegate(dispose, "dispose", this);
+                    del = new TsDelegate(dispose, "dispose");
                     return true;
                 case "get_all_voices":
-                    del = new TsDelegate(get_all_voices, "get_all_voices", this);
+                    del = new TsDelegate(get_all_voices, "get_all_voices");
                     return true;
                 case "get_voices":
-                    del = new TsDelegate(get_voices, "get_voices", this);
+                    del = new TsDelegate(get_voices, "get_voices");
                     return true;
                 case "pause":
-                    del = new TsDelegate(pause, "pause", this);
+                    del = new TsDelegate(pause, "pause");
                     return true;
                 case "remove_lexicon":
-                    del = new TsDelegate(remove_lexicon, "remove_lexicon", this);
+                    del = new TsDelegate(remove_lexicon, "remove_lexicon");
                     return true;
                 case "resume":
-                    del = new TsDelegate(resume, "resume", this);
+                    del = new TsDelegate(resume, "resume");
                     return true;
                 case "set_voice":
-                    del = new TsDelegate(set_voice, "set_voice", this);
+                    del = new TsDelegate(set_voice, "set_voice");
                     return true;
                 case "speak":
-                    del = new TsDelegate(speak, "speak", this);
+                    del = new TsDelegate(speak, "speak");
                     return true;
                 case "speak_async":
-                    del = new TsDelegate(speak_async, "speak_async", null);
+                    del = new TsDelegate(speak_async, "speak_async");
                     return true;
                 case "subscribe_event":
-                    del = new TsDelegate(subscribe_event, "subscribe_event", this);
+                    del = new TsDelegate(subscribe_event, "subscribe_event");
                     return true;
                 case "unsubscribe_event":
-                    del = new TsDelegate(unsubscribe_event, "unsubscribe_event", this);
+                    del = new TsDelegate(unsubscribe_event, "unsubscribe_event");
                     return true;
                 default:
                     del = null;
@@ -155,7 +156,7 @@ namespace TaffyScript.Speech
             }
         }
 
-        public TsObject get_all_voices(ITsInstance inst, TsObject[] args)
+        public TsObject get_all_voices(TsObject[] args)
         {
             var voices = new List<TsObject>();
             foreach(var voiceInfo in _synth.GetInstalledVoices().Where(v => v.Enabled).Select(v => v.VoiceInfo))
@@ -163,7 +164,7 @@ namespace TaffyScript.Speech
             return voices.ToArray();
         }
 
-        public TsObject get_voices(ITsInstance inst, TsObject[] args)
+        public TsObject get_voices(TsObject[] args)
         {
             CultureInfo culture;
             if (args.Length > 0)
@@ -177,25 +178,25 @@ namespace TaffyScript.Speech
             return voices.ToArray();
         }
 
-        public TsObject set_voice(ITsInstance inst, TsObject[] args)
+        public TsObject set_voice(TsObject[] args)
         {
             _synth.SelectVoice((string)args[0]);
-            return TsObject.Empty();
+            return TsObject.Empty;
         }
 
-        public TsObject add_lexicon(ITsInstance inst, TsObject[] args)
+        public TsObject add_lexicon(TsObject[] args)
         {
             _synth.AddLexicon(new Uri((string)args[0]), PLS);
-            return TsObject.Empty();
+            return TsObject.Empty;
         }
 
-        public TsObject remove_lexicon(ITsInstance inst, TsObject[] args)
+        public TsObject remove_lexicon(TsObject[] args)
         {
             _synth.RemoveLexicon(new Uri((string)args[0]));
-            return TsObject.Empty();
+            return TsObject.Empty;
         }
 
-        public TsObject speak(ITsInstance inst, TsObject[] args)
+        public TsObject speak(TsObject[] args)
         {
             var text = (string)args[0];
             if (string.IsNullOrWhiteSpace(text))
@@ -205,7 +206,7 @@ namespace TaffyScript.Speech
             return true;
         }
 
-        public TsObject speak_async(ITsInstance inst, TsObject[] args)
+        public TsObject speak_async(TsObject[] args)
         {
             var text = (string)args[0];
             if (string.IsNullOrWhiteSpace(text))
@@ -215,31 +216,31 @@ namespace TaffyScript.Speech
             return true;
         }
 
-        public TsObject pause(ITsInstance inst, TsObject[] args)
+        public TsObject pause(TsObject[] args)
         {
             _synth.Pause();
             return _synth.State == SynthesizerState.Paused;
         }
 
-        public TsObject resume(ITsInstance inst, TsObject[] args)
+        public TsObject resume(TsObject[] args)
         {
             _synth.Resume();
-            return TsObject.Empty();
+            return TsObject.Empty;
         }
 
-        public TsObject cancel(ITsInstance inst, TsObject[] args)
+        public TsObject cancel(TsObject[] args)
         {
             _synth.SpeakAsyncCancelAll();
-            return TsObject.Empty();
+            return TsObject.Empty;
         }
 
-        public TsObject dispose(ITsInstance inst, TsObject[] args)
+        public TsObject dispose(TsObject[] args)
         {
             _synth.Dispose();
-            return TsObject.Empty();
+            return TsObject.Empty;
         }
 
-        public TsObject subscribe_event(ITsInstance inst, TsObject[] args)
+        public TsObject subscribe_event(TsObject[] args)
         {
             var eventType = (TtsEventType)(float)args[0];
             var callback = (TsDelegate)args[1];
@@ -269,10 +270,10 @@ namespace TaffyScript.Speech
                 default:
                     throw new InvalidOperationException($"{ObjectType} does not define event {eventType}");
             }
-            return TsObject.Empty();
+            return TsObject.Empty;
         }
 
-        public TsObject unsubscribe_event(ITsInstance inst, TsObject[] args)
+        public TsObject unsubscribe_event(TsObject[] args)
         {
             var eventType = (TtsEventType)(float)args[0];
             var callback = (TsDelegate)args[1];
@@ -394,7 +395,7 @@ namespace TaffyScript.Speech
         private TsObject CreateVoice(VoiceInfo voiceInfo)
         {
             if (voiceInfo is null)
-                return TsObject.Empty();
+                return TsObject.Empty;
 
             var voice = new DynamicInstance("VoiceInfo");
             voice["name"] = voiceInfo.Name;
@@ -408,12 +409,12 @@ namespace TaffyScript.Speech
 
         public static implicit operator TsObject(SpeechSynthesizer synthesizer)
         {
-            return new TsObject(synthesizer);
+            return new TsInstanceWrapper(synthesizer);
         }
 
         public static explicit operator SpeechSynthesizer(TsObject obj)
         {
-            return (SpeechSynthesizer)obj.Value.WeakValue;
+            return (SpeechSynthesizer)obj.WeakValue;
         }
     }
 
